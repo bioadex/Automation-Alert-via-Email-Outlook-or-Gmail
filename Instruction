@@ -1,0 +1,122 @@
+Aim of this project
+
+1. Send a file or multiple of file to an FTP OR SFTP server automatically using cron job to schedule the task 
+2. Verify that Transfer Successful 
+3. Send a Notification to gmail account after delivery         # you can also use outlook or telegram 
+
+Step 1: Install Required Tools
+
+sudo apt update 
+sudo apt install lftp mailutils -y         # to install reliable FTP transfers + scripting and mailutils to send email notifications
+
+Step 2: Create ftp/sftp server 
+www.ftpgrid.com      # signup for free ftp server for testing here later you can upgrade for more space 
+
+Step 3: Create FTP credentials file           # this is recommended for security 
+
+nano ~/.ftp_credentials
+
+FTP_HOST=ftp.example.com
+FTP_USER=ftpuser
+FTP_PASS=ftppassword
+REMOTE_DIR=/share/tests                  # this is path to Remote ftp server where the transfer file will be store 
+
+chmod 600 ~/.ftp_credentials             # secure the credentials this will make only file owner able to read,edit 
+
+Step 4: Create the Transfer Script 
+sudo touch /usr/local/bin/ftp_upload.sh
+
+nano /usr/local/bin/ftp_upload.sh
+
+copy and past the ftp_upload.sh 
+
+Ctrl O Enter Ctrl X 
+
+chmod +x /usr/local/bin/ftp_upload.sh      # make it executable
+
+Step 5: Configure Gmail for Notifications
+
+Enable 2-Step Verification on Gmail        # you can search on YouTube how to do this 
+
+Create an App Password                     # this is not your gmail login password you need to create App Password, search on YouTube to do this 
+
+Configure mailutils 
+sudo touch ~/.mailrc
+
+nano ~/.mailrc
+
+paste this inside
+
+set smtp=smtps://smtp.gmail.com:465
+set smtp-auth=login
+set smtp-auth-user=yourgmail@gmail.com
+set smtp-auth-password=APP_PASSWORD
+set from="yourgmail@gmail.com"
+
+chmod 600 ~/.mailrc                     # to secure it 
+
+
+Step 6: Test Manual if its work 
+
+echo "Test email" | mail -s "Test" yourgmail@gmail.com
+
+Output : You should receive an email in your gmail account 
+
+if that works then we can go to Cronjob 
+
+Step 7: Schedule the Cron Job to transfer file to ftp/sftp server at a particular hours of the day 
+
+crontab -e        # this is to edit the cron
+
+paste this 
+
+0 2 * * * /usr/local/bin/ftp_upload.sh            # Example transfer file at 2:00 AM everyday 
+
+Step 7: Manually Run to Test 
+
+sudo /usr/local/bin/ftp_upload.sh
+
+Step 8: Verify Logs 
+
+cat /var/log/ftp_upload.log
+
+Output: File Successfully Transfer in the log that means the cron job will work as well. 
+
+Architecture Summary
+
+[Home Server]
+   |
+   | (cron)
+   v
+[Shell Script]
+   |
+   | (lftp)
+   v
+[FTP Server]
+   |
+   | (mailutils + Gmail SMTP)
+   v
+[Gmail Notification]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
